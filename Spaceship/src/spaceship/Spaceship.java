@@ -1,5 +1,6 @@
 package spaceship;
 
+import java.awt.BorderLayout;
 import java.awt.EventQueue;
 
 import javax.swing.JFrame;
@@ -8,28 +9,25 @@ public class Spaceship extends JFrame {
 
 	private static final long serialVersionUID = 1L;
 	
-	public static final int screenWidth = 640;
-	public static final int screenHeight = 480;
-	
-	private Board board = new Board();
-	
+	private static final int WIDTH = 640;
+	private static final int HEIGHT = 480;
+
 	public Spaceship() {
-		add(board);
-		
-		setResizable(false);
 		setTitle("Spaceship Game by Erik Kralj");
-		setSize(screenWidth, screenHeight);
+		setSize(WIDTH, HEIGHT);
+		setResizable(false);
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
 		setLocationRelativeTo(null);
 		setVisible(true);
+		
+		add(new Board(getContentPane().getWidth(), getContentPane().getHeight()));
 	}
 	
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
 			@Override
 			public void run() {
-				Spaceship ss = new Spaceship();
-				ss.setVisible(true);
+				new Spaceship();
 			}
 		});
 	}

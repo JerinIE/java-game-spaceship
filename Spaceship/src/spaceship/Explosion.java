@@ -15,11 +15,11 @@ public class Explosion {
 		this.size = size;
 	}
 	
-	public int getLocationX() {
+	public int getX() {
 		return this.locationX;
 	}
 	
-	public int getLocationY() {
+	public int getY() {
 		return this.locationY;
 	}
 	
