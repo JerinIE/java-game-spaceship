@@ -72,8 +72,6 @@ public class Board extends JPanel implements ActionListener {
 		setPreferredSize(new java.awt.Dimension(width, height));
 		setVisible(true);
 		
-		System.out.println("Panel width: " + getWidth() + ", height: " + getHeight());
-		
 		// Load all resources into RAM
 		loadResources();
 		
