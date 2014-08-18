@@ -19,12 +19,20 @@ import javax.swing.Timer;
 import spaceship.GameObject.Direction;
 import sun.misc.Queue;
 
+/**
+ * Board on which the game is played on. :)
+ * @author Erik Kralj
+ *
+ */
 public class Board extends JPanel implements ActionListener {
 
 	private static final long serialVersionUID = 1L;
 	
 	private int width;
 	private int height;
+	
+	// Debugging
+	private boolean drawObjectBorders = false;
 	
 	// Controls being pressed (movement)
 	private boolean moveLeft, moveRight, moveUp, moveDown, isFiring, enterPressed;
@@ -41,7 +49,7 @@ public class Board extends JPanel implements ActionListener {
 	private ArrayList<Explosion> explosions;
 	
 	// Resource variables
-	private Image rock32Image, rock48Image, rock64Image, backgroundImage, shipImage;
+	private Image rock32Image, rock48Image, rock64Image, shipImage;
 	private ObjectBounds rock32Bounds, rock48Bounds, rock64Bounds, shipBounds;
 	private ArrayList<Image> explosionImages = new ArrayList<Image>();
 	
@@ -54,6 +62,13 @@ public class Board extends JPanel implements ActionListener {
 	
 	private Timer timer;
 	
+	/**
+	 * Main and only constructor for Board class.
+	 * Sets basic variables and prepares the JPanel.
+	 * Also starts the main game loop timer.
+	 * @param width Width of JFrame content (inner width)
+	 * @param height Height of JFrame content (inner height)
+	 */
 	public Board(int width, int height) {
 		this.width = width;
 		this.height = height;
@@ -82,6 +97,9 @@ public class Board extends JPanel implements ActionListener {
 		timer.start();
 	}
 	
+	/**
+	 * Method should only be called once. It loads all resources from the .jar file into RAM.
+	 */
 	private void loadResources() {
 		ClassLoader classLoader = getClass().getClassLoader();
 		
@@ -89,7 +107,6 @@ public class Board extends JPanel implements ActionListener {
 		rock32Image = new ImageIcon(classLoader.getResource("resources/rock32.png")).getImage();
 		rock48Image = new ImageIcon(classLoader.getResource("resources/rock48.png")).getImage();
 		rock64Image = new ImageIcon(classLoader.getResource("resources/rock64.png")).getImage();
-		backgroundImage = new ImageIcon(classLoader.getResource("resources/starfield.png")).getImage();
 		shipImage = new ImageIcon(classLoader.getResource("resources/ship64.png")).getImage();
 		
 		for(int i = 0; i <= 17; i++) {
@@ -103,6 +120,9 @@ public class Board extends JPanel implements ActionListener {
 		shipBounds = ObjectBounds.parseFromFile(classLoader.getResource("resources/ship64.txt"));
 	}
 	
+	/**
+	 * Resets the entire game - puts all the variables to their default values.
+	 */
 	private void resetGame() {
 		// Reset movements
 		moveLeft = false;
@@ -133,6 +153,11 @@ public class Board extends JPanel implements ActionListener {
 		menuControlsBuffer = new Queue<Integer>();
 	}
 	
+	/**
+	 * This is the starting point of this application logic.
+	 * Calls appropriate method according to the current game state.
+	 * Logic goes on from there.
+	 */
 	private void doLogic() {
 		starfield.doLogic();
 		
@@ -145,6 +170,9 @@ public class Board extends JPanel implements ActionListener {
 		}
 	}
 	
+	/**
+	 * Controls the menu navigation and selection.
+	 */
 	private void doMenuLogic() {
 		if(menuControlsBuffer.isEmpty()) {
 			return;
@@ -183,6 +211,9 @@ public class Board extends JPanel implements ActionListener {
 		} 
 	}
 	
+	/**
+	 * Method simply divides the entire game logic into smaller pieces.
+	 */
 	private void doGameLogic() {
 		handleObjectCreations();
 		handleObjectMovements();
@@ -190,7 +221,12 @@ public class Board extends JPanel implements ActionListener {
 		handleObjectEndings();
 		handleExplosions();
 	}
-
+	
+	/**
+	 * Using the java Date, the method determines weather or not
+	 * enough time has elapsed to create a new rock. Method also
+	 * limits players ability from over firing.
+	 */
 	private void handleObjectCreations() {
 		Date now = new Date();
 		
@@ -225,6 +261,10 @@ public class Board extends JPanel implements ActionListener {
 		}
 	}
 	
+	/**
+	 * Moves rocks downwards, bullets upwards and the ship in
+	 * the correct direction - determined by the keys being pressed.
+	 */
 	private void handleObjectMovements() {
 		for(Rock rock : rocks) {
 			rock.advanceY(Direction.DOWN);
@@ -251,6 +291,14 @@ public class Board extends JPanel implements ActionListener {
 		}
 	}
 	
+	/**
+	 * Checks if a rock is in collision with the spaceship or any bullet
+	 * available in the game. If the ship is in collision the game state
+	 * is changed and the game is over. If rock is in collision with a
+	 * bullet, both rock and the bullet are removed, an explosion is created
+	 * and the player score in increased.
+	 * This method is recursive.
+	 */
 	private void handleObjectCollisions() {
 		for(Rock rock : rocks) {
 			if(rock.getBounds().isInside(ship.getBounds())) {
@@ -272,6 +320,11 @@ public class Board extends JPanel implements ActionListener {
 		}
 	}
 	
+	/**
+	 * Checks if any rock or bullet is outside of the screen. If so
+	 * it removed them from the game.
+	 * This method is recursive.
+	 */
 	private void handleObjectEndings() {
 		for(Rock rock : rocks) {
 			if(rock.isOutsideScreen(Direction.DOWN)) {
@@ -290,6 +343,10 @@ public class Board extends JPanel implements ActionListener {
 		}
 	}
 	
+	/**
+	 * Calls a recursive method to remove explosions and
+	 * advances the explosions that are still in the game.
+	 */
 	private void handleExplosions() {
 		handleExplosionRemoval();
 		
@@ -298,6 +355,11 @@ public class Board extends JPanel implements ActionListener {
 		}
 	}
 	
+	/**
+	 * Checks each explosion, to determine if it has been
+	 * completed. If so it removes it from the game.
+	 * This method is recursive.
+	 */
 	private void handleExplosionRemoval() {
 		for(Explosion explosion : explosions) {
 			if(explosion.isDone()) {
@@ -308,6 +370,9 @@ public class Board extends JPanel implements ActionListener {
 		}
 	}
 	
+	/**
+	 * Resets the game and puts it into the gameplay state.
+	 */
 	private void doGameOverLogic() {
 		if(enterPressed) {
 			resetGame();
@@ -315,6 +380,11 @@ public class Board extends JPanel implements ActionListener {
 		}
 	}
 	
+	/**
+	 * This is where the painting starts. Method also determines
+	 * what needs to be painted on the JPanel according
+	 * to the game state.
+	 */
 	@Override
 	public void paintComponent(Graphics g) {
 		super.paintComponent(g);
@@ -333,6 +403,12 @@ public class Board extends JPanel implements ActionListener {
 		}
 	}
 	
+	/**
+	 * Draws the main menu items and underlines the selected menu item.
+	 * There are three menu items: "Start", "Settings", "Quit".
+	 * Settings menu doesn't work yet. 
+	 * @param g Java Graphics
+	 */
 	private void paintMenu(Graphics g) {
 		
 		String menuStartName= "START";
@@ -374,14 +450,23 @@ public class Board extends JPanel implements ActionListener {
 		}
 	}
 	
+	/**
+	 * Use to draw the gameplay. Method loops throught each rock, explosion, bullet and the ship
+	 * and draws it on the JPanel including the player score and the time elapsed since the game
+	 * started. If drawObjectBorders boolean is set to true, this method will also draw the 
+	 * borders of rocks and the spaceship.
+	 * @param g Java Graphics
+	 */
 	private void paintGame(Graphics g) {
-		for(Rock rock : rocks) { // draw all rocks
+		for(Rock rock : rocks) {
 			g.drawImage(rock32Image, rock.getX(), rock.getY(), rock.getWidth(), rock.getHeight(), null);
 			
-			//g.setColor(Color.WHITE);
-			//for(Point point : rock.getBounds().getPoints()) {
-			//	g.drawLine(point.getX()+rock.getX(), point.getY()+rock.getY(), point.getX()+rock.getX(), point.getY()+rock.getY());
-			//}
+			if(drawObjectBorders) {
+				g.setColor(Color.WHITE);
+				for(Point point : rock.getBounds().getPoints()) {
+					g.drawLine(point.getX()+rock.getX(), point.getY()+rock.getY(), point.getX()+rock.getX(), point.getY()+rock.getY());
+				}
+			}
 		}
 		
 		for(Explosion explosion : explosions) {
@@ -393,28 +478,39 @@ public class Board extends JPanel implements ActionListener {
 			g.fillRect(bullet.getX(), bullet.getY(), bullet.getWidth(), bullet.getHeight());
 		}
 		
+		// Draw the spaceship
 		g.drawImage(shipImage, ship.getX(), ship.getY(), ship.getWidth(), ship.getHeight(), null);
 		
-		//g.setColor(Color.WHITE);
-		//for(Point point : ship.getBounds().getPoints()) {
-		//	g.drawLine(point.getX()+ship.getX(), point.getY()+ship.getY(), point.getX()+ship.getX(), point.getY()+ship.getY());
-		//}
-		
-		// draw score
-		String score = "SCORE: " + this.score;
+		if(drawObjectBorders) {
+			g.setColor(Color.WHITE);
+			
+			for(Point point : ship.getBounds().getPoints()) {
+				// Draw the border of the spaceship
+				g.drawLine(point.getX()+ship.getX(), point.getY()+ship.getY(), point.getX()+ship.getX(), point.getY()+ship.getY());
+			}
+		}
 		
 		g.setColor(Color.blue);
 		g.setFont(new Font("Helvetica", Font.PLAIN, 18));
 		
+		// Calculate position of score text
+		String score = "SCORE: " + this.score;
 		int scoreWidth = (int)g.getFontMetrics().getStringBounds(score, g).getWidth();
 		int startX = this.width - scoreWidth - 10;
 		int startY = 20;
 		
+		// Draw player score
 		g.drawString(score, startX, startY);
 		
+		// Draw the amount of time elapsed since the game started
 		g.drawString("Time elapsed: " + (int)((new Date().getTime() - gameStartedAt.getTime()) / 1000), 10, 20);
 	}
 	
+	/**
+	 * Draws "Game Over" text with a shadow. Also provided information on how to
+	 * continue playing.
+	 * @param g Java Graphics
+	 */
 	private void paintGameOver(Graphics g) {
 		g.setColor(Color.WHITE);
 		g.setFont(new Font("Helvetica", Font.PLAIN, 48));
@@ -446,6 +542,9 @@ public class Board extends JPanel implements ActionListener {
 		g.drawString(gameOverText, startX, startY);
 	}
 	
+	/**
+	 * Method occurs every time a timer ticks. (every 33 milliseconds - imitating 30 FPS)
+	 */
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		Date loopStart = new Date();
@@ -470,6 +569,12 @@ public class Board extends JPanel implements ActionListener {
 		}
 	}
 	
+	/**
+	 * Used to capture key events on the JPanel. This method is used
+	 * to capture the arrow keys in order to move the spaceship object.
+	 * @author Erik Kralj
+	 *
+	 */
 	class TAdapter extends KeyAdapter {
 		
 		@Override
