@@ -9,7 +9,7 @@ public class Rock extends GameObject {
 		setImage(image);
 		setBounds(bounds);
 		setSizeByImage();
-		setSpeed(2);
+		setSpeed(3);
 		setX(GameObject.randomWithRange(0, panelWidth - getWidth()));
 		setY(-getHeight());
 		limitToScreenBounds(false);

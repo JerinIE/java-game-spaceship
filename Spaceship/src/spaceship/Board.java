@@ -4,7 +4,6 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Image;
-import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
@@ -12,15 +11,11 @@ import java.awt.event.KeyEvent;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Iterator;
-import java.util.Vector;
-import java.util.function.Predicate;
 
 import javax.swing.ImageIcon;
 import javax.swing.JPanel;
 import javax.swing.Timer;
 
-import quicktime.std.clocks.RateCallBack;
 import spaceship.GameObject.Direction;
 import sun.misc.Queue;
 
@@ -32,7 +27,7 @@ public class Board extends JPanel implements ActionListener {
 	private int height;
 	
 	// Controls being pressed (movement)
-	private boolean moveLeft, moveRight, moveUp, moveDown, isFiring;
+	private boolean moveLeft, moveRight, moveUp, moveDown, isFiring, enterPressed;
 	private Queue<Integer> menuControlsBuffer;
 	
 	// Environment variables
@@ -50,6 +45,8 @@ public class Board extends JPanel implements ActionListener {
 	private ObjectBounds rock32Bounds, rock48Bounds, rock64Bounds, shipBounds;
 	private ArrayList<Image> explosionImages = new ArrayList<Image>();
 	
+	private Starfield starfield;
+	
 	private int gameState = 0;
 	private int selectedMenuItem = 0;
 	
@@ -60,6 +57,8 @@ public class Board extends JPanel implements ActionListener {
 	public Board(int width, int height) {
 		this.width = width;
 		this.height = height;
+		
+		starfield = new Starfield(this.width, this.height, 50);
 		
 		// Start listening for key input
 		addKeyListener(new TAdapter());
@@ -110,6 +109,8 @@ public class Board extends JPanel implements ActionListener {
 		moveRight = false;
 		moveUp = false;
 		moveDown = false;
+		isFiring = false;
+		enterPressed = false;
 		
 		// Re-created game objects
 		ship = new Ship(shipImage, shipBounds, width, height);
@@ -133,6 +134,8 @@ public class Board extends JPanel implements ActionListener {
 	}
 	
 	private void doLogic() {
+		starfield.doLogic();
+		
 		if(gameState == 0) { // Main Menu
 			doMenuLogic();
 		} else if(gameState == 1) { // Game Play
@@ -261,6 +264,7 @@ public class Board extends JPanel implements ActionListener {
 					rocks.remove(rock);
 					bullets.remove(bullet);
 					explosions.add(new Explosion(rock.getX(), rock.getY(), rock.getWidth()));
+					score += 50;
 					handleObjectCollisions();
 					return;
 				}
@@ -305,20 +309,26 @@ public class Board extends JPanel implements ActionListener {
 	}
 	
 	private void doGameOverLogic() {
-		//TODO: Create GameOver logic
+		if(enterPressed) {
+			resetGame();
+			gameState = 1;
+		}
 	}
 	
 	@Override
 	public void paintComponent(Graphics g) {
 		super.paintComponent(g);
 		
-		g.drawImage(backgroundImage, 0, 0, width, height, null);
+		starfield.draw(g);
+		
+		//g.drawImage(backgroundImage, 0, 0, width, height, null);
 		
 		if(gameState == 0) { // Main Menu
 			paintMenu(g);
 		} else if(gameState == 1) { // Game Play
 			paintGame(g);
 		} else { // Game Over
+			paintGame(g);
 			paintGameOver(g);
 		}
 	}
@@ -406,13 +416,32 @@ public class Board extends JPanel implements ActionListener {
 	}
 	
 	private void paintGameOver(Graphics g) {
-		g.setColor(Color.blue);
+		g.setColor(Color.WHITE);
 		g.setFont(new Font("Helvetica", Font.PLAIN, 48));
 		
 		String gameOverText = "GAME OVER";
 		Rectangle2D gameOverBounds = g.getFontMetrics().getStringBounds(gameOverText, g);
-        int startX = (int)((width / 2) - (gameOverBounds.getWidth() / 2));
-        int startY = (int)((height / 2) - (gameOverBounds.getHeight() / 2));
+        int startX = (int)((width / 2) - (gameOverBounds.getWidth() / 2)-2);
+        int startY = (int)((height / 2) + (gameOverBounds.getHeight() / 2)-2);
+        
+		g.drawString(gameOverText, startX, startY);
+		
+		g.setColor(Color.BLUE);
+		g.setFont(new Font("Helvetica", Font.PLAIN, 48));
+		
+		gameOverBounds = g.getFontMetrics().getStringBounds(gameOverText, g);
+        startX = (int)((width / 2) - (gameOverBounds.getWidth() / 2));
+        startY = (int)((height / 2) + (gameOverBounds.getHeight() / 2));
+        
+		g.drawString(gameOverText, startX, startY);
+		
+		g.setColor(Color.BLUE);
+		g.setFont(new Font("Helvetica", Font.PLAIN, 24));
+		
+		gameOverText = "PRESS ENTER TO RESTART";
+		gameOverBounds = g.getFontMetrics().getStringBounds(gameOverText, g);
+        startX = (int)((width / 2) - (gameOverBounds.getWidth() / 2));
+        startY = (int)((height / 2) + (gameOverBounds.getHeight() / 2) + 50);
         
 		g.drawString(gameOverText, startX, startY);
 	}
@@ -467,6 +496,8 @@ public class Board extends JPanel implements ActionListener {
 				moveDown = true;
 			} else if(key == KeyEvent.VK_F) {
 				isFiring = true;
+			} else if(key == KeyEvent.VK_ENTER) {
+				enterPressed = true;
 			}
 			
 		}
@@ -486,6 +517,8 @@ public class Board extends JPanel implements ActionListener {
 				moveDown = false;
 			} else if(key == KeyEvent.VK_F) {
 				isFiring = false;
+			} else if(key == KeyEvent.VK_ENTER) {
+				enterPressed = false;
 			}
 		}
 	}
