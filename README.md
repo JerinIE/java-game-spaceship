@@ -7,4 +7,6 @@ Use arrow keys to navigate and press "F" to fire.
 
 Feel free to contribute and do with it whatever you want. :)
 
-Screenshots and .jar releases can be found on [My Google Drive](drive.google.com/folderview?id=0B0CuY3hZAsSIb2U1UEx2aGRaelE&usp=sharing)
+Screenshots and .jar releases can be found on [My Google Drive](https://drive.google.com/folderview?id=0B0CuY3hZAsSIb2U1UEx2aGRaelE&usp=sharing).
+
+![Java based Spaceship game](https://drive.google.com/file/d/0B0CuY3hZAsSIbm9vcGtrTXctMVk/edit?usp=sharing)
