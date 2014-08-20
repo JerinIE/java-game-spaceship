@@ -49,9 +49,10 @@ public class Board extends JPanel implements ActionListener {
 	private ArrayList<Explosion> explosions;
 	
 	// Resource variables
-	private Image rock32Image, rock48Image, rock64Image, shipImage;
-	private ObjectBounds rock32Bounds, rock48Bounds, rock64Bounds, shipBounds;
+	private Image rock32Image, rock48Image, rock64Image, shipImage, bulletImage;
+	private ObjectBounds rock32Bounds, rock48Bounds, rock64Bounds, shipBounds, bulletBounds;
 	private ArrayList<Image> explosionImages = new ArrayList<Image>();
+	private byte[] explosionSound;
 	
 	private Starfield starfield;
 	
@@ -72,7 +73,7 @@ public class Board extends JPanel implements ActionListener {
 	public Board(int width, int height) {
 		this.width = width;
 		this.height = height;
-		
+				
 		starfield = new Starfield(this.width, this.height, 50);
 		
 		// Start listening for key input
@@ -104,20 +105,25 @@ public class Board extends JPanel implements ActionListener {
 		ClassLoader classLoader = getClass().getClassLoader();
 		
 		// Load images
-		rock32Image = new ImageIcon(classLoader.getResource("resources/rock32.png")).getImage();
-		rock48Image = new ImageIcon(classLoader.getResource("resources/rock48.png")).getImage();
-		rock64Image = new ImageIcon(classLoader.getResource("resources/rock64.png")).getImage();
-		shipImage = new ImageIcon(classLoader.getResource("resources/ship64.png")).getImage();
+		rock32Image = new ImageIcon(classLoader.getResource("resources/asteroid2-32.png")).getImage();
+		rock48Image = new ImageIcon(classLoader.getResource("resources/asteroid2-48.png")).getImage();
+		rock64Image = new ImageIcon(classLoader.getResource("resources/asteroid2-64.png")).getImage();
+		shipImage = new ImageIcon(classLoader.getResource("resources/spaceship2-64.png")).getImage();
+		bulletImage = new ImageIcon(classLoader.getResource("resources/bullet2-6x12.png")).getImage();
 		
 		for(int i = 0; i <= 17; i++) {
 			explosionImages.add(new ImageIcon(classLoader.getResource("resources/explosion/ex"+i+".png")).getImage());
 		}
 		
 		// Load bounds for images
-		rock32Bounds = ObjectBounds.parseFromFile(classLoader.getResource("resources/rock32.txt"));
-		rock48Bounds = ObjectBounds.parseFromFile(classLoader.getResource("resources/rock48.txt"));
-		rock64Bounds = ObjectBounds.parseFromFile(classLoader.getResource("resources/rock64.txt"));
-		shipBounds = ObjectBounds.parseFromFile(classLoader.getResource("resources/ship64.txt"));
+		rock32Bounds = ObjectBounds.parseFromFile(classLoader.getResource("resources/asteroid2-32.txt"));
+		rock48Bounds = ObjectBounds.parseFromFile(classLoader.getResource("resources/asteroid2-48.txt"));
+		rock64Bounds = ObjectBounds.parseFromFile(classLoader.getResource("resources/asteroid2-64.txt"));
+		shipBounds = ObjectBounds.parseFromFile(classLoader.getResource("resources/spaceship2-64.txt"));
+		bulletBounds = ObjectBounds.parseFromFile(classLoader.getResource("resources/bullet2-6x12.txt"));
+		
+		// Load sounds
+		explosionSound = Helper.fileToByteArray(classLoader.getResource("resources/explosion.wav"));
 	}
 	
 	/**
@@ -255,7 +261,16 @@ public class Board extends JPanel implements ActionListener {
 		
 		// Create a bullet if possible
 		if(now.getTime() - lastBulletFiredAt.getTime() > bulletFiringRate && isFiring) {
-			bullets.add(new Bullet((int)(ship.getX() + (ship.getWidth() / 2)), ship.getY(), this.width, this.height));
+			
+			// left side bullet
+			bullets.add(new Bullet(ship.getX()+3, ship.getY()+20, this.width, this.height, bulletImage, (ObjectBounds)bulletBounds.clone()));
+			
+			// right side bullet
+			bullets.add(new Bullet(ship.getX()+ship.getWidth()-8, ship.getY()+20, this.width, this.height, bulletImage, (ObjectBounds)bulletBounds.clone()));
+			
+			// center bullet
+			int x = (int)(ship.getX() + (ship.getWidth() / 2)) - (bulletImage.getWidth(null) / 2);
+			bullets.add(new Bullet(x, ship.getY(), this.width, this.height, bulletImage, (ObjectBounds)bulletBounds.clone()));
 			
 			lastBulletFiredAt = now;
 		}
@@ -312,6 +327,7 @@ public class Board extends JPanel implements ActionListener {
 					rocks.remove(rock);
 					bullets.remove(bullet);
 					explosions.add(new Explosion(rock.getX(), rock.getY(), rock.getWidth()));
+					Helper.playSoundFromByteArray(explosionSound);
 					score += 50;
 					handleObjectCollisions();
 					return;
@@ -459,7 +475,17 @@ public class Board extends JPanel implements ActionListener {
 	 */
 	private void paintGame(Graphics g) {
 		for(Rock rock : rocks) {
-			g.drawImage(rock32Image, rock.getX(), rock.getY(), rock.getWidth(), rock.getHeight(), null);
+			Image img = null;
+			
+			if(rock.getType() == GameObject.Type.ROCK32) {
+				img = rock32Image;
+			} else if(rock.getType() == GameObject.Type.ROCK48) {
+				img = rock48Image;
+			} else if(rock.getType() == GameObject.Type.ROCK64) {
+				img = rock64Image;
+			}
+			
+			g.drawImage(img, rock.getX(), rock.getY(), rock.getWidth(), rock.getHeight(), null);
 			
 			if(drawObjectBorders) {
 				g.setColor(Color.WHITE);
@@ -475,7 +501,8 @@ public class Board extends JPanel implements ActionListener {
 		
 		for(Bullet bullet : bullets) {
 			g.setColor(Color.BLUE);
-			g.fillRect(bullet.getX(), bullet.getY(), bullet.getWidth(), bullet.getHeight());
+			//g.fillRect(bullet.getX(), bullet.getY(), bullet.getWidth(), bullet.getHeight());
+			g.drawImage(bullet.getImage(), bullet.getX(), bullet.getY(), bullet.getWidth(), bullet.getHeight(), null);
 		}
 		
 		// Draw the spaceship
