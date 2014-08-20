@@ -6,3 +6,5 @@ Simple java game. You play a spaceship that tries to move through an astroid bel
 Use arrow keys to navigate and press "F" to fire.
 
 Feel free to contribute and do with it whatever you want. :)
+
+Screenshots and .jar releases can be found on [My Google Drive](drive.google.com/folderview?id=0B0CuY3hZAsSIb2U1UEx2aGRaelE&usp=sharing)
